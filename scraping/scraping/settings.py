@@ -13,3 +13,4 @@ SPIDER_MODULES = ['scraping.spiders']
 NEWSPIDER_MODULE = 'scraping.spiders'
 USER_AGENT = '%s/%s' % (BOT_NAME, BOT_VERSION)
 
+HTTPCACHE_ENABLED = True
