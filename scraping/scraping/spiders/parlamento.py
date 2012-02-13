@@ -5,8 +5,11 @@ from scraping.items import ScrapingItem
 
 class ParlamentoSpider(CrawlSpider):
     name = 'parlamento'
-    allowed_domains = ['www.parlamento.gub.uy']
-    start_urls = ['http://www.www.parlamento.gub.uy/']
+    allowed_domains = [
+        'www.parlamento.gub.uy',
+        'www0.parlamento.gub.uy',
+    ]
+    start_urls = ['http://www0.parlamento.gub.uy/palacio3/p_mapaTree.asp']
 
     rules = (
         Rule(SgmlLinkExtractor(allow=r'Items/'), callback='parse_item', follow=True),
