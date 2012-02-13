@@ -6,7 +6,7 @@
 #     http://doc.scrapy.org/topics/settings.html
 #
 
-BOT_NAME = 'scraping'
+BOT_NAME = 'GobiernoTransparenteBot'
 BOT_VERSION = '1.0'
 
 SPIDER_MODULES = ['scraping.spiders']
