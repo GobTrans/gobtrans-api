@@ -14,7 +14,7 @@ class ParlamentoSpider(BaseSpider):
         'www0.parlamento.gub.uy',
     )
     start_callbacks = (
-        ('http://www0.parlamento.gub.uy/palacio3/p_mapaTree.asp', 'treemap'),
+        ('http://www0.parlamento.gub.uy/palacio3/abms2/asistsala/ConsAsistenciabrief.asp', 'assistance'),
     )
 
     def __init__(self, *args, **kwargs):
