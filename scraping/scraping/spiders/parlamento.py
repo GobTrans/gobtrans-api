@@ -3,8 +3,6 @@ import os
 from scrapy.spider import BaseSpider
 from scrapy.http import Request
 
-from scraping.items import ScrapingItem
-
 from scraping.spiders import parsers
 
 class ParlamentoSpider(BaseSpider):
