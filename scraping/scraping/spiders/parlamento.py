@@ -5,6 +5,8 @@ from scrapy.http import Request
 
 from scraping.items import ScrapingItem
 
+from scraping.spiders import parsers
+
 class ParlamentoSpider(BaseSpider):
     name = 'parlamento'
     allowed_domains = (
@@ -12,7 +14,7 @@ class ParlamentoSpider(BaseSpider):
         'www0.parlamento.gub.uy',
     )
     start_callbacks = (
-        ('http://www0.parlamento.gub.uy/palacio3/p_mapaTree.asp', 'parse_treemap'),
+        ('http://www0.parlamento.gub.uy/palacio3/p_mapaTree.asp', 'treemap'),
     )
 
     def __init__(self, *args, **kwargs):
@@ -22,8 +24,5 @@ class ParlamentoSpider(BaseSpider):
 
     def start_requests(self):
         for url, callback in self.start_callbacks:
-            yield Request(url, getattr(self, callback))
-
-    def parse_treemap(self, response):
-        pass
+            yield Request(url, getattr(parsers, callback).parse)
 
