@@ -5,7 +5,11 @@
 
 from scrapy.item import Item, Field
 
-class ScrapingItem(Item):
-    # define the fields for your item here like:
-    # name = Field()
-    pass
+class SubstitutesItem(Item):
+    name = Field()
+    party = Field()
+    substitutes = Field()
+    substitutes_from = Field()
+    substitutes_to = Field()
+    substitutes_why = Field()
+    
