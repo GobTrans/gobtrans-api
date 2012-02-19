@@ -1,1 +1,3 @@
-scrapy
+-e git+https://github.com/arshaw/scrapemark.git#egg=scrapemark
+BeautifulSoup
+Scrapy
