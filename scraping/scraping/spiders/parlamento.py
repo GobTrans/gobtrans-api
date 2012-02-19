@@ -17,6 +17,7 @@ class ParlamentoSpider(BaseSpider):
         ('http://www0.parlamento.gub.uy/palacio3/p_mapaTree.asp', 'treemap'),
         ('http://www0.parlamento.gub.uy/forms/IntCpo.asp?Cuerpo=S', 'substitutes'),
         ('http://www0.parlamento.gub.uy/forms/IntCpo.asp?Cuerpo=D', 'substitutes'),
+        ('http://www0.parlamento.gub.uy/palacio3/abms2/asistsala/ConsAsistenciabrief.asp', 'assistance'),
     )
 
     def __init__(self, *args, **kwargs):
