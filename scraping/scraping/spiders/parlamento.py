@@ -24,5 +24,5 @@ class ParlamentoSpider(BaseSpider):
 
     def start_requests(self):
         for url, callback in self.start_callbacks:
-            yield Request(url, getattr(parsers, callback).parse)
+            yield Request(url, lambda resp: getattr(parsers, callback).parse(self, resp))
 
