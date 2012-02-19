@@ -1,24 +1,22 @@
-from scrapy.selector import HtmlXPathSelector
-from scrapy.contrib.linkextractors.sgml import SgmlLinkExtractor
-from scrapy.contrib.spiders import CrawlSpider, Rule
+from scrapy.spider import BaseSpider
+from scrapy.http import Request
+
 from scraping.items import ScrapingItem
 
-class ParlamentoSpider(CrawlSpider):
+class ParlamentoSpider(BaseSpider):
     name = 'parlamento'
-    allowed_domains = [
+    allowed_domains = (
         'www.parlamento.gub.uy',
         'www0.parlamento.gub.uy',
-    ]
-    start_urls = ['http://www0.parlamento.gub.uy/palacio3/p_mapaTree.asp']
-
-    rules = (
-        Rule(SgmlLinkExtractor(allow=r'Items/'), callback='parse_item', follow=True),
+    )
+    start_callbacks = (
+        ('http://www0.parlamento.gub.uy/palacio3/p_mapaTree.asp', 'parse_treemap'),
     )
 
-    def parse_item(self, response):
-        hxs = HtmlXPathSelector(response)
-        i = ScrapingItem()
-        #i['domain_id'] = hxs.select('//input[@id="sid"]/@value').extract()
-        #i['name'] = hxs.select('//div[@id="name"]').extract()
-        #i['description'] = hxs.select('//div[@id="description"]').extract()
-        return i
+    def start_requests(self):
+        for url, callback in self.start_callbacks:
+            yield Request(url, getattr(self, callback))
+
+    def parse_treemap(self, response):
+        pass
+
