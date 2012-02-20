@@ -3,17 +3,23 @@ from urlparse import urljoin
 
 from scrapy.http import Request
 
+
 class ParseAssistance(object):
     def __init__(self, spider):
         self.spider = spider
         self.logger = logging.getLogger('%s:%s' % (spider.name, self.__class__.__name__))
 
     def parse_treemap(self, response):
-        link_regex = re.compile(r"window\.open\(\\'(abms2/asistsala/ConsAsistencia\.asp[^']*)\\',")
-        links = (urljoin(response.url, link) for link in link_regex.findall(response.body))
-        return (Request(link, self.crawl_preform) for link in links)
+        asistsala_re = re.compile(r"window\.open\(\\'(abms2/asistsala/ConsAsistencia\.asp[^']*)\\',")
+        urls = (urljoin(response.url, uri) for uri in asistsala_re.findall(response.body))
+        return (Request(uri, self.crawl_preform) for uri in urls)
 
     def crawl_preform(self, response):
+        cons_asistencia_re = re.compile(r'href="(ConsAsistenciaBrief\.asp[^"]*)"')
+        urls = (urljoin(response.url, uri) for uri in cons_asistencia_re.findall(response.body))
+        return (Request(uri, self.prepare_form) for uri in urls)
+
+    def prepare_form(self, response):
         pass
 
 
