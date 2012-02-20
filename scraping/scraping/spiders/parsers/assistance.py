@@ -58,26 +58,54 @@ class ParseAssistance(object):
 
             session_diary = a.select('@href').extract()
             session_diary = urljoin(response.url, session_diary[0])
+            if session_diary.startswith('javascript:'):
+                session_diary = None
 
             for textnode in table.select('descendant-or-self::*/text()'):
                 search = (
-                    ('present',  u'Asisten los se\xf1ores (?:Senadores|Representantes): (.*)'),
-                    ('warned',   u'Faltan? con aviso: (.*)'),
-                    ('unwarned', u'Faltan? sin aviso: (.*)'),
-                    ('license',  u'Con licencia: (.*)'),
+                    ('present',  u'Asisten los se\xf1ores (?:Senadores|Representantes): (.*)\.'),
+                    ('warned',   u'Faltan? con aviso: (.*)\.'),
+                    ('unwarned', u'Faltan? sin aviso: (.*)\.'),
+                    ('license',  u'Con licencia: (.*)\.'),
                 )
 
                 for status, pattern in search:
                     match = textnode.re(pattern)
                     if match:
-                        for person in match[0].split(','):
+                        asistees = match[0].split(',')
+
+                        last = asistees.pop()
+
+                        # first_name last_name
+                        # first_name last_name y last_name2
+
+                        # first_name last_name y first_name' last_name'
+                        # first_name last_name y first_name' last_name' y last_name2'
+
+                        # first_name last_name y last_name2 y first_name' last_name'
+                        # first_name last_name y last_name2 y first_name' last_name' y last_name2'
+
+                        last_chunks = [chunk.split() for chunk in last.split(' y ')]
+                        while last_chunks:
+                            last_pair = last_chunks[-2:]
+                            del last_chunks[-2:]
+
+                            if len(last_pair) == 1:
+                                asistees.append(' '.join(last_pair[0]))
+                            elif len(last_pair[1]) == 1:
+                                asistees.append(' y '.join(' '.join(chunk) for chunk in last_pair))
+                            else:
+                                asistees.append(' '.join(last_pair[1]))
+                                last_chunks.append(last_pair[0])
+
+                        for asistee in (asistee.strip() for asistee in asistees):
                             yield AssistanceItem(
                                 legislature   = legislature,
                                 chamber       = chamber,
                                 session       = session,
                                 session_date  = session_date,
                                 session_diary = session_diary,
-                                asistee       = person,
+                                asistee       = asistee,
                                 status        = status,
                             )
 
