@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import os
 
 from scrapy.spider import BaseSpider
@@ -15,6 +16,7 @@ class ParlamentoSpider(BaseSpider):
         ('http://www0.parlamento.gub.uy/forms/IntCpo.asp?Cuerpo=S', 'substitutes'),
         ('http://www0.parlamento.gub.uy/forms/IntCpo.asp?Cuerpo=D', 'substitutes'),
         ('http://www0.parlamento.gub.uy/palacio3/abms2/asistsala/ConsAsistenciabrief.asp', 'assistance'),
+        ('http://www0.parlamento.gub.uy/palacio3/p_legisladores.asp', 'parliamentaries'),
     )
 
     def __init__(self, *args, **kwargs):
