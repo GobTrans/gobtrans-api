@@ -41,6 +41,9 @@ def parse_list(resp):
         *}""",
         html=html)['res']
 
+    # TODO: The president of the chamber may appear only in a footer. Add him
+    #       to the members list.
+
     refs = scrape(
         """
         {* <font>Sustituye al <a>{{ [res].name }}</a>{{ [res].why }}</font>*}
