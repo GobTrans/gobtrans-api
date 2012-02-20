@@ -1,5 +1,5 @@
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
 from BeautifulSoup import BeautifulSoup
 from scrapemark import scrape
 from scrapy.http import FormRequest
@@ -7,22 +7,39 @@ from collections import defaultdict
 
 from scraping.items import SubstitutesItem
 
+DATE_FMT = '%d%m%Y'
+
 get_substitution_range = lambda why: re.findall('([\d/]+)', why, re.UNICODE)
 get_substitution_reason = lambda why: re.match('(.*?) desde', why, re.UNICODE).group(1)
 
+def dates_gen(start):
+    """ Iterate over days backwards from today to 15/2/1985 """
+    d = timedelta(days=1)
+    while True:
+        yield start
+        start -= d
+        if start.year == 1985 and start.month == 2 and start.day == 15:
+            return
+
 def parse(spider, resp):
-    return FormRequest(resp.url,
-                       formdata={
-                           'Fecha': datetime.today().strftime(DATE_FMT),
-                           'Cuerpo': resp.url[-1],
-                           'Integracion': 'S',
-                           'Desde': '15021985',
-                           'Hasta': datetime.today().strftime(DATE_FMT),
-                           'Dummy': datetime.today().strftime(DATE_FMT),
-                           'TipoLeg': 'Act',
-                           'Orden': 'Legislador',
-                       },
-                       callback=parse_list)
+    reqs = []
+    for date in dates_gen(datetime.today()):
+        date_str = date.strftime(DATE_FMT)
+        req = FormRequest(resp.url,
+                          formdata={
+                              'Fecha': date_str,
+                              'Cuerpo': resp.url[-1],
+                              'Integracion': 'S',
+                              'Desde': '15021985',
+                              'Hasta': date_str,
+                              'Dummy': date_str,
+                              'TipoLeg': 'Act',
+                              'Orden': 'Legislador',
+                          },
+                          callback=parse_list)
+        req.meta['date'] = date_str
+        reqs.append(req)
+    return reqs
 
 def parse_list(resp):
     html = BeautifulSoup(resp.body).prettify()
@@ -68,7 +85,9 @@ def parse_list(resp):
                 since = range[0]
             if len(range) > 1:
                 to = range[1]
-        items.append(SubstitutesItem(name=info['name'],
+
+        items.append(SubstitutesItem(date=resp.meta['date'],
+                                     name=info['name'],
                                      party=info['party'], 
                                      chamber=resp.url[-1],
                                      substitutes=substitutes,
