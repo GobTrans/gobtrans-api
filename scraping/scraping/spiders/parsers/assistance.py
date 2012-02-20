@@ -61,7 +61,15 @@ class ParseAssistance(object):
             if session_diary.startswith('javascript:'):
                 session_diary = None
 
-            for textnode in table.select('descendant-or-self::*/text()'):
+            textnodes = table.select('tr/td/div').extract()[0].replace('<br>', '\n').splitlines()
+
+            notes_dict, notes_re = {}, re.compile('<b>\((\d+)\)</b> (.*)')
+            for textnode in textnodes:
+                match = notes_re.match(textnode)
+                if match:
+                    notes_dict[match.group(1)] = match.group(2)
+
+            for textnode in textnodes:
                 search = (
                     ('present',  u'Asisten los se\xf1ores (?:Senadores|Representantes): (.*)\.'),
                     ('warned',   u'Faltan? con aviso: (.*)\.'),
@@ -70,9 +78,9 @@ class ParseAssistance(object):
                 )
 
                 for status, pattern in search:
-                    match = textnode.re(pattern)
+                    match = re.search(pattern, textnode)
                     if match:
-                        asistees = match[0].split(',')
+                        asistees = match.group(1).split(',')
 
                         last = asistees.pop()
 
@@ -99,6 +107,11 @@ class ParseAssistance(object):
                                 last_chunks.append(last_pair[0])
 
                         for asistee in (asistee.strip() for asistee in asistees):
+                            notes, notes_re = None, re.compile(' <b>\((\d+)\)</b>')
+                            if notes_re.search(asistee):
+                                notes = [notes_dict[note_n] for note_n in notes_re.findall(asistee)]
+                                asistee = notes_re.sub('', asistee)
+
                             yield AssistanceItem(
                                 legislature   = legislature,
                                 chamber       = chamber,
@@ -107,6 +120,7 @@ class ParseAssistance(object):
                                 session_diary = session_diary,
                                 asistee       = asistee,
                                 status        = status,
+                                notes         = notes,
                             )
 
 
