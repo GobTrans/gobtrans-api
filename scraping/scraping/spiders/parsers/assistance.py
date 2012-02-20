@@ -1,8 +1,11 @@
 import re, logging
-from urlparse import urljoin
+from urlparse import urljoin, parse_qs
 from datetime import datetime
 
 from scrapy.http import Request, FormRequest
+from scrapy.selector import HtmlXPathSelector
+
+from scraping.items import AssistanceItem
 
 
 class ParseAssistance(object):
@@ -13,7 +16,7 @@ class ParseAssistance(object):
     def parse_treemap(self, response):
         asistsala_re = re.compile(r"window\.open\(\\'(abms2/asistsala/ConsAsistencia\.asp[^']*)\\',")
         urls = (urljoin(response.url, uri) for uri in asistsala_re.findall(response.body))
-        return [Request(uri, self.crawl_preform) for uri in urls]
+        return [Request(url, self.crawl_preform) for url in urls]
 
     def crawl_preform(self, response):
         cons_asistencia_re = re.compile(r'href="(ConsAsistenciaBrief\.asp[^"]*)"')
@@ -21,8 +24,6 @@ class ParseAssistance(object):
         return [Request(uri, self.prepare_form) for uri in urls]
 
     def prepare_form(self, response):
-        legislature = re.search(r'>Legislatura ([^<]*)<', response.body).group(1)
-
         daterange_pattern = r'>Rango de asistencias disponibles para el Cuerpo en la Legislatura: (\d{2}/\d{2}/\d{4}) - (\d{2}/\d{2}/\d{4})<'
         daterange = re.findall(daterange_pattern, response.body)[0]
         post_args = {
@@ -38,11 +39,47 @@ class ParseAssistance(object):
         form_uri_pattern = r'<FORM METHOD=POST ACTION="([^"]+)"'
         form_url = urljoin(response.url, re.search(form_uri_pattern, response.body).group(1))
 
-        callback = lambda response: self.parse_form_result(response, legislature)
-        return FormRequest(url=form_url, formdata=post_args, callback=callback)
+        return FormRequest(url=form_url, formdata=post_args, callback=self.parse_form_result)
 
-    def parse_form_result(self, response, legislature=None):
-        pass
+    def parse_form_result(self, response):
+        qs = parse_qs(response.request.body)
+        legislature, chamber = int(qs['Legislatura'][0]), qs['Cuerpo'][0]
+
+        hxs = HtmlXPathSelector(response)
+
+        a_selector = '//center/a'
+        table_selector = '//center/a/following-sibling::table'
+        script_selector = '//script[contains(text(), "innerHTML = \'Procesando Sesiones")]'
+
+        z = (hxs.select(selector) for selector in (a_selector, table_selector, script_selector))
+        for a, table, script in zip(*z):
+            session, session_date = script.select('text()').re('(\d+) del (\d{2}/\d{2}/\d{4})')
+            session, session_date = int(session), datetime.strptime(session_date, '%d/%m/%Y').date().isoformat()
+
+            session_diary = a.select('@href').extract()
+            session_diary = urljoin(response.url, session_diary[0])
+
+            for textnode in table.select('descendant-or-self::*/text()'):
+                search = (
+                    ('present',  u'Asisten los se\xf1ores (?:Senadores|Representantes): (.*)'),
+                    ('warned',   u'Faltan? con aviso: (.*)'),
+                    ('unwarned', u'Faltan? sin aviso: (.*)'),
+                    ('license',  u'Con licencia: (.*)'),
+                )
+
+                for status, pattern in search:
+                    match = textnode.re(pattern)
+                    if match:
+                        for person in match[0].split(','):
+                            yield AssistanceItem(
+                                legislature   = legislature,
+                                chamber       = chamber,
+                                session       = session,
+                                session_date  = session_date,
+                                session_diary = session_diary,
+                                asistee       = person,
+                                status        = status,
+                            )
 
 
 def parse(spider, response):

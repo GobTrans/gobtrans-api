@@ -14,4 +14,15 @@ class SubstitutesItem(Item):
     substitutes_from = Field()
     substitutes_to = Field()
     substitutes_why = Field()
-    
+
+
+class AssistanceItem(Item):
+    chamber       = Field()
+    legislature   = Field()
+    session       = Field()
+    session_date  = Field()
+    session_diary = Field()
+    asistee       = Field()
+    status        = Field()
+    notes         = Field()
+
