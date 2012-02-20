@@ -1,3 +1,4 @@
+import re
 from datetime import datetime
 from BeautifulSoup import BeautifulSoup
 from scrapemark import scrape
@@ -6,17 +7,18 @@ from collections import defaultdict
 
 from scraping.items import SubstitutesItem
 
-date_fmt = '%d%m%Y'
+get_substitution_range = lambda why: re.findall('([\d/]+)', why, re.UNICODE)
+get_substitution_reason = lambda why: re.match('(.*?) desde', why, re.UNICODE).group(1)
 
 def parse(spider, resp):
     return FormRequest(resp.url,
                        formdata={
-                           'Fecha': datetime.today().strftime(date_fmt),
+                           'Fecha': datetime.today().strftime(DATE_FMT),
                            'Cuerpo': resp.url[-1],
                            'Integracion': 'S',
                            'Desde': '15021985',
-                           'Hasta': datetime.today().strftime(date_fmt),
-                           'Dummy': datetime.today().strftime(date_fmt),
+                           'Hasta': datetime.today().strftime(DATE_FMT),
+                           'Dummy': datetime.today().strftime(DATE_FMT),
                            'TipoLeg': 'Act',
                            'Orden': 'Legislador',
                        },
@@ -41,24 +43,34 @@ def parse_list(resp):
 
     refs = scrape(
         """
-        {* <font>Sustituye al <a>{{ [res].name }}</a>{{ [res].why }}{* desde el {{ [res].from }}*}{* hasta el {{ [res].to }}*}</font>*}
+        {* <font>Sustituye al <a>{{ [res].name }}</a>{{ [res].why }}</font>*}
         """,
         html=html)['res']
 
-
     items = []
     for info in members:
+        since = None
+        to = None
+        why = None
+        substitutes = None
         if 'ref' in info and info['ref'] is not None:
             ref = int(info['ref'])
-            substitutes = refs[ref-1]
-        else:
-            substitutes = defaultdict(lambda: None)
+            sub_info = refs[ref-1]
+
+            substitutes = sub_info['name']
+            range = get_substitution_range(sub_info['why'])
+            why = get_substitution_reason(sub_info['why'])
+
+            if len(range) > 0:
+                since = range[0]
+            if len(range) > 1:
+                to = range[1]
         items.append(SubstitutesItem(name=info['name'],
                                      party=info['party'], 
                                      chamber=resp.url[-1],
-                                     substitutes=substitutes['name'],
-                                     substitutes_from=substitutes['from'],
-                                     substitutes_to=substitutes['to'],
-                                     substitutes_why=substitutes['why']))
+                                     substitutes=substitutes,
+                                     substitutes_from=since,
+                                     substitutes_to=to,
+                                     substitutes_why=why))
 
     return items
