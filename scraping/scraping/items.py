@@ -6,7 +6,9 @@
 from scrapy.item import Item, Field
 
 class SubstitutesItem(Item):
+    date = Field()
     name = Field()
+    chamber = Field()
     party = Field()
     substitutes = Field()
     substitutes_from = Field()
