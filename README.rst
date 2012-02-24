@@ -3,7 +3,7 @@
 Gobierno Transparente API
 =========================
 
-#### An API for querying Uruguayan Parliament data ####
+*An API for querying Uruguayan Parliament data*
 
 Hacking
 =======
