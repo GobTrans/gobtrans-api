@@ -9,8 +9,13 @@ from scraping.items import SubstitutesItem
 
 DATE_FMT = '%d%m%Y'
 
-get_substitution_range = lambda why: re.findall('([\d/]+)', why, re.UNICODE)
-get_substitution_reason = lambda why: re.match('(.*?) desde', why, re.UNICODE).group(1)
+SUBS_DATES_RE = re.compile('([\d/]+)', re.UNICODE)
+SUBS_REASON_RE = re.compile('(.*?) desde', re.UNICODE)
+ID_LINK_RE = re.compile('[iI][dD]=([\d]+)', re.UNICODE)
+
+get_substitution_range = lambda why: SUBS_DATES_RE.findall(why)
+get_substitution_reason = lambda why: SUBS_REASON_RE.match(why).group(1)
+extract_id_link = lambda idlink: ID_LINK_RE.search(idlink).group(1)
 
 def dates_gen(start):
     """ Iterate over days backwards from today to 15/2/1985 """
@@ -48,7 +53,7 @@ def parse_list(resp):
         """{* 
             <tr>
                 <td>
-                    <a>{{ [res].name }}</a>
+                    <a href='{{ [res].idlink }}'>{{ [res].name }}</a>
                     {* <strong>({{ [res].ref }})</strong> *}
                 </td>
                 <td>
@@ -86,7 +91,8 @@ def parse_list(resp):
             if len(range) > 1:
                 to = range[1]
 
-        items.append(SubstitutesItem(date=resp.meta['date'],
+        items.append(SubstitutesItem(id=extract_id_link(info['idlink']),
+                                     date=resp.meta['date'],
                                      name=info['name'],
                                      party=info['party'], 
                                      chamber=resp.url[-1],
