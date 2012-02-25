@@ -20,22 +20,32 @@ class ParliamentariesAPI(MethodView):
         json=jsonify,
         xml=dict2xml,
     )
-    def get(self, id=None):
-        if id is None:
-            return {'parliamentaries': map(Parliamentary.to_dict, Parliamentary.query.all())}
-        return {'parliamentaries': map(Parliamentary.to_dict, Parliamentary.query.filter_by(id=id).all())}
+    def get(self, **kwargs):
+        return {'parliamentaries': map(Parliamentary.to_dict,
+                                       Parliamentary.query.filter_by(**kwargs).all())}
 
-    def post(self, id, name):
+    def put(self, id, name):
         p = Parliamentary(id=id, name=name)
-        print dir(p)
         db.session.add(p)
         db.session.commit()
         return "OK"
 
+    def post(self, name):
+        p = Parliamentary(name=name)
+        db.session.add(p)
+        db.session.commit()
+        return str(p.id)
+
 parliamentaries_view = ParliamentariesAPI.as_view('parliamentaries_api')
-app.add_url_rule('/parliamentaries/', defaults={'id': None}, view_func=parliamentaries_view, methods=['GET'])
-app.add_url_rule('/parliamentaries/<int:id>/', view_func=parliamentaries_view, methods=['GET'])
-app.add_url_rule('/parliamentaries/<int:id>/<name>', view_func=parliamentaries_view, methods=['POST'])
+
+app.add_url_rule('/parliamentaries/',
+                 view_func=parliamentaries_view, methods=['GET'])
+app.add_url_rule('/parliamentaries/<int:id>/', view_func=parliamentaries_view,
+                 methods=['GET'])
+app.add_url_rule('/parliamentaries/<name>/', view_func=parliamentaries_view,
+                 methods=['GET', 'POST'])
+app.add_url_rule('/parliamentaries/<int:id>/<name>/',
+                 view_func=parliamentaries_view, methods=['PUT'])
 
 if __name__ == '__main__':
     app.run()
