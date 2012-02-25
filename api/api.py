@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+import os
+
 from flask import Flask, jsonify
 from flask.views import MethodView
 from mimerender_flask import mimerender
@@ -7,7 +9,7 @@ from models import Parliamentary, init_db
 from lib.xmlutils import dict2xml
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////home/aa/hijosdeobdulio/gobtrans-api/api/api.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(app.instance_path, 'api.db')
 app.debug=True
 
 db = init_db(app)
