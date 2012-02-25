@@ -8,5 +8,13 @@ Gobierno Transparente API
 Hacking
 =======
 
+- Install pip, virtualenv and virtualenvwrapper::
+
+    sudo easy_install pip
+    sudo pip install virtualenv virtualenvwrapper
+
 - Source the 'dev' script::
-  . ./dev
+
+    . ./dev
+
+- Hack away!
