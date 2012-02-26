@@ -24,17 +24,17 @@ class ParliamentariesAPI(MethodView):
         return {'parliamentaries': map(Parliamentary.to_dict,
                                        Parliamentary.query.filter_by(**kwargs).all())}
 
-    def put(self, id, name):
-        p = Parliamentary(id=id, name=name)
-        db.session.add(p)
-        db.session.commit()
-        return "OK"
-
-    def post(self, name):
-        p = Parliamentary(name=name)
-        db.session.add(p)
-        db.session.commit()
-        return str(p.id)
+#    def put(self, id, name):
+#        p = Parliamentary(id=id, name=name)
+#        db.session.add(p)
+#        db.session.commit()
+#        return "OK"
+#
+#    def post(self, name):
+#        p = Parliamentary(name=name)
+#        db.session.add(p)
+#        db.session.commit()
+#        return str(p.id)
 
 parliamentaries_view = ParliamentariesAPI.as_view('parliamentaries_api')
 
@@ -43,9 +43,11 @@ app.add_url_rule('/parliamentaries/',
 app.add_url_rule('/parliamentaries/<int:id>/', view_func=parliamentaries_view,
                  methods=['GET'])
 app.add_url_rule('/parliamentaries/<name>/', view_func=parliamentaries_view,
-                 methods=['GET', 'POST'])
-app.add_url_rule('/parliamentaries/<int:id>/<name>/',
-                 view_func=parliamentaries_view, methods=['PUT'])
+                 methods=['GET'])
+#app.add_url_rule('/parliamentaries/<name>/', view_func=parliamentaries_view,
+#                 methods=['GET', 'POST'])
+#app.add_url_rule('/parliamentaries/<int:id>/<name>/',
+#                 view_func=parliamentaries_view, methods=['PUT'])
 
 if __name__ == '__main__':
     app.run()
