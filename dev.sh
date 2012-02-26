@@ -1,13 +1,13 @@
 # Check for pip
 if ! which pip >/dev/null; then
     echo "Please install pip. 'easy_install pip' usually works."
-    exit 1
+    return
 fi
 
 need_pkg() {
     if ! pip freeze 2>/dev/null | grep -q "^$1=="; then
         echo "Package $1 not installed. Try 'pip install $1'."
-        exit 1
+        return
     fi
 }
 
