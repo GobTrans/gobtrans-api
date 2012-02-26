@@ -7,6 +7,34 @@ from scrapy.selector import HtmlXPathSelector
 
 from scraping.items import AssistanceItem
 
+def parse_nlp_list(paragraph):
+    asistees = paragraph.split(',')
+
+    # first_name last_name
+    # first_name last_name y last_name2
+
+    # first_name last_name y first_name' last_name'
+    # first_name last_name y first_name' last_name' y last_name2'
+
+    # first_name last_name y last_name2 y first_name' last_name'
+    # first_name last_name y last_name2 y first_name' last_name' y last_name2'
+
+    last = asistees.pop()
+    last_chunks = [chunk.split() for chunk in last.split(' y ')]
+    while last_chunks:
+        last_pair = last_chunks[-2:]
+        del last_chunks[-2:]
+
+        if len(last_pair) == 1:
+            asistees.append(' '.join(last_pair[0]))
+        elif len(last_pair[1]) == 1:
+            asistees.append(' y '.join(' '.join(chunk) for chunk in last_pair))
+        else:
+            asistees.append(' '.join(last_pair[1]))
+            last_chunks.append(last_pair[0])
+
+    return asistees
+
 
 class ParseAssistance(object):
     def __init__(self, spider):
@@ -80,31 +108,7 @@ class ParseAssistance(object):
                 for status, pattern in search:
                     match = re.search(pattern, textnode)
                     if match:
-                        asistees = match.group(1).split(',')
-
-                        last = asistees.pop()
-
-                        # first_name last_name
-                        # first_name last_name y last_name2
-
-                        # first_name last_name y first_name' last_name'
-                        # first_name last_name y first_name' last_name' y last_name2'
-
-                        # first_name last_name y last_name2 y first_name' last_name'
-                        # first_name last_name y last_name2 y first_name' last_name' y last_name2'
-
-                        last_chunks = [chunk.split() for chunk in last.split(' y ')]
-                        while last_chunks:
-                            last_pair = last_chunks[-2:]
-                            del last_chunks[-2:]
-
-                            if len(last_pair) == 1:
-                                asistees.append(' '.join(last_pair[0]))
-                            elif len(last_pair[1]) == 1:
-                                asistees.append(' y '.join(' '.join(chunk) for chunk in last_pair))
-                            else:
-                                asistees.append(' '.join(last_pair[1]))
-                                last_chunks.append(last_pair[0])
+                        asistees = parse_nlp_list(match.group(1))
 
                         for asistee in (asistee.strip() for asistee in asistees):
                             notes, notes_re = None, re.compile(' <b>\((\d+)\)</b>')
@@ -127,65 +131,4 @@ class ParseAssistance(object):
 def parse(spider, response):
     parser = ParseAssistance(spider)
     return parser.parse_treemap(response)
-
-
-## senadores 2005/2010
-#res = Net::HTTP.post_form(uri,
-#                          'FecDesde' => '15022005',
-#                          'FecHasta' => '04022010',
-#                          'Cuerpo' => 'S',
-#                          'Ini' => '15022005',
-#                          'Fin' => '04022010',
-#                          'Legislatura' => '46',
-#                          'Fechas' => 'Seleccionado',
-#                          'IMAGE1' => 'Confirmar')
-#datos[:senadores] << parse_results(res)
-#
-## senadores 2010/2015
-#res = Net::HTTP.post_form(uri,
-#                          'Cuerpo' => 'S',
-#                          'FecDesde' => '15022010',
-#                          'FecHasta' => '30112011',
-#                          'Fechas' => 'Seleccionado',
-#                          'Fin' => '30112011',
-#                          'IMAGE1' => 'Confirmar',
-#                          'Ini' => '15022010',
-#                          'Legislatura' => '47')
-#datos[:senadores] << parse_results(res)
-#
-## representantes 2000/2005
-#res = Net::HTTP.post_form(uri,
-#                          'FecDesde' => '12122001',
-#                          'FecHasta' => '15122004',
-#                          'Cuerpo' => 'D',
-#                          'Ini' => '12122001',
-#                          'Fin' => '15122004',
-#                          'Legislatura' => '45',
-#                          'Fechas' => 'Seleccionado',
-#                          'IMAGE1' => 'Confirmar')
-#datos[:representantes] << parse_results(res)
-#
-## representantes 2005/2010
-#res = Net::HTTP.post_form(uri,
-#                          'FecDesde' => '15022005',
-#                          'FecHasta' => '03022010',
-#                          'Cuerpo' => 'D',
-#                          'Ini' => '15022005',
-#                          'Fin' => '03022010',
-#                          'Legislatura' => '46',
-#                          'Fechas' => 'Seleccionado',
-#                          'IMAGE1' => 'Confirmar')
-#datos[:representantes] << parse_results(res)
-#
-## representantes 2010/2015
-#res = Net::HTTP.post_form(uri,
-#                          'FecDesde' => '15022010',
-#                          'FecHasta' => '23102011',
-#                          'Cuerpo' => 'D',
-#                          'Ini' => '15022010',
-#                          'Fin' => '23102011',
-#                          'Legislatura' => '47',
-#                          'Fechas' => 'Seleccionado',
-#                          'IMAGE1' => 'Confirmar')
-#datos[:representantes] << parse_results(res)
 
