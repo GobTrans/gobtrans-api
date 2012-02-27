@@ -2,6 +2,7 @@
 #
 # See documentation in:
 # http://doc.scrapy.org/topics/items.html
+from datetime import datetime
 
 from scrapy.item import Item, Field
 
@@ -31,13 +32,28 @@ class SubstitutesItem(ValidatingItem):
     substitutes_why = Field()
 
 
-class AssistanceItem(Item):
-    chamber       = Field()
-    legislature   = Field()
-    session       = Field()
-    session_date  = Field()
-    session_diary = Field()
-    asistee       = Field()
-    status        = Field()
+def chamber_validator(chamber):
+    if chamber not in ('S', 'D'):
+        raise ValueError('chamber=%s' % chamber)
+
+def session_date_validator(session_date):
+    return datetime.strptime(session_date, '%d/%m/%Y').date().isoformat()
+
+def url_validator(session_diary):
+    if session_diary is not None and not session_diary.startswith('http'):
+        raise ValueError('session_diary=%s' % session_diary)
+
+def status_validator(status):
+    if status not in ('present', 'warned', 'unwarned', 'license'):
+        raise ValueError('status=%s' % status)
+
+class AssistanceItem(ValidatingItem):
+    chamber       = Field(validator=chamber_validator, required=True)
+    legislature   = Field(validator=int, required=True)
+    session       = Field(validator=int, required=True)
+    session_date  = Field(validator=session_date_validator, required=True)
+    session_diary = Field(validator=url_validator)
+    asistee       = Field(required=True)
+    status        = Field(validator=status_validator, required=True)
     notes         = Field()
 

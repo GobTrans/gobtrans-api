@@ -71,7 +71,7 @@ class ParseAssistance(object):
 
     def parse_form_result(self, response):
         qs = parse_qs(response.request.body)
-        legislature, chamber = int(qs['Legislatura'][0]), qs['Cuerpo'][0]
+        legislature, chamber = qs['Legislatura'][0], qs['Cuerpo'][0]
 
         hxs = HtmlXPathSelector(response)
 
@@ -82,7 +82,6 @@ class ParseAssistance(object):
         z = (hxs.select(selector) for selector in (a_selector, table_selector, script_selector))
         for a, table, script in zip(*z):
             session, session_date = script.select('text()').re('(\d+) del (\d{2}/\d{2}/\d{4})')
-            session, session_date = int(session), datetime.strptime(session_date, '%d/%m/%Y').date().isoformat()
 
             session_diary = a.select('@href').extract()
             session_diary = urljoin(response.url, session_diary[0])
