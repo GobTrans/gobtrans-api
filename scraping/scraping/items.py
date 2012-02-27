@@ -57,7 +57,7 @@ class AssistanceItem(PrintableItem, AlchemyBase):
     session_date  = Column(Date, nullable=False)
     session_diary = Column(String)
     asistee       = Column(String, nullable=False)
-    status        = Column(Enum('present', 'warned', 'unwarned', 'license'), nullable=False)
+    status        = Column(Enum('present', 'absent_w_warn', 'absent_wo_warn', 'on_vacation'), nullable=False)
     notes         = relationship('AssistanceNote', backref='assistance')
 
     @validates('session_date')

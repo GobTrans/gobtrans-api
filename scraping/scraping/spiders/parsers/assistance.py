@@ -97,14 +97,14 @@ class ParseAssistance(object):
                     notes_dict[match.group(1)] = match.group(2)
 
             for textnode in textnodes:
-                search = (
-                    ('present',  u'Asisten los se\xf1ores (?:Senadores|Representantes): (.*)\.'),
-                    ('warned',   u'Faltan? con aviso: (.*)\.'),
-                    ('unwarned', u'Faltan? sin aviso: (.*)\.'),
-                    ('license',  u'Con licencia: (.*)\.'),
-                )
+                search = {
+                    'present':        u'Asisten los se\xf1ores (?:Senadores|Representantes): (.*)\.',
+                    'absent_w_warn':  u'Faltan? con aviso: (.*)\.',
+                    'absent_wo_warn': u'Faltan? sin aviso: (.*)\.',
+                    'on_vacation':    u'Con licencia: (.*)\.',
+                }
 
-                for status, pattern in search:
+                for status, pattern in search.items():
                     match = re.search(pattern, textnode)
                     if match:
                         asistees = parse_nlp_list(match.group(1))
