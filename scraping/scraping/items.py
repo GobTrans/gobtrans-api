@@ -52,28 +52,25 @@ class ValidatingItem(Item):
                 value = new_value
         super(ValidatingItem, self).__setitem__(key, value)
 
-def chamber_validator(chamber):
-    if chamber not in ('S', 'D'):
-        raise ValueError('chamber=%s' % chamber)
 
-def session_date_validator(session_date):
-    return datetime.strptime(session_date, '%d/%m/%Y').date().isoformat()
+class AssistanceItem(PrintableItem, AlchemyBase):
+    __tablename__ = 'assistance'
 
-def url_validator(session_diary):
-    if session_diary is not None and not session_diary.startswith('http'):
-        raise ValueError('session_diary=%s' % session_diary)
+    chamber       = Column(Enum('S', 'D'), nullable=False)
+    legislature   = Column(Integer, nullable=False)
+    session       = Column(Integer, nullable=False)
+    session_date  = Column(Date, nullable=False)
+    session_diary = Column(String, nullable=False)
+    asistee       = Column(String, nullable=False)
+    status        = Column(Enum('present', 'warned', 'unwarned', 'license'), nullable=False)
+    notes         = Column(String)
 
-def status_validator(status):
-    if status not in ('present', 'warned', 'unwarned', 'license'):
-        raise ValueError('status=%s' % status)
+    @validates('session_date')
+    def session_date_validator(self, key, value):
+        return datetime.strptime(value, '%d/%m/%Y').date()
 
-class AssistanceItem(ValidatingItem):
-    chamber       = Field(validator=chamber_validator, required=True)
-    legislature   = Field(validator=int, required=True)
-    session       = Field(validator=int, required=True)
-    session_date  = Field(validator=session_date_validator, required=True)
-    session_diary = Field(validator=url_validator)
-    asistee       = Field(required=True)
-    status        = Field(validator=status_validator, required=True)
-    notes         = Field()
+    @validates('session_diary')
+    def url_validator(self, key, value):
+        if value is not None and not value.startswith('http'):
+            raise ValueError('session_diary=%s' % value)
 
