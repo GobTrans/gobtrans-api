@@ -29,7 +29,7 @@ class SubstitutesItem(PrintableItem, AlchemyBase):
 
     id = Column(Integer, primary_key=True)
     date = Column(Date, nullable=False)
-    name = Column(String)
+    name = Column(String, nullable=False)
     chamber = Column(Enum('S', 'D'))
     party = Column(String)
     substitutes_line = Column(String)
@@ -37,6 +37,7 @@ class SubstitutesItem(PrintableItem, AlchemyBase):
     @validates('date')
     def validate_date(self, key, value):
         assert isinstance(value, date)
+        return value
 
 class ValidatingItem(Item):
     def __init__(self, *args, **kwargs):

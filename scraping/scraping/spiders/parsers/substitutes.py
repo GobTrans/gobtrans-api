@@ -43,7 +43,7 @@ def parse(spider, resp):
                               'Orden': 'Legislador',
                           },
                           callback=parse_list)
-        req.meta['date'] = date_str
+        req.meta['date'] = date
         reqs.append(req)
     return reqs
 
@@ -93,8 +93,10 @@ def parse_list(resp):
             #if len(range) > 1:
             #    to = range[1]
 
-        items.append(SubstitutesItem(id=extract_id_link(info['idlink']),
-                                     date=datetime.strptime(resp.meta['date'], DATE_FMT).date(),
+        date = resp.meta['date']
+        id = extract_id_link(info['idlink']) + date.strftime(DATE_FMT)
+        items.append(SubstitutesItem(id=id,
+                                     date=date,
                                      name=info['name'],
                                      party=info['party'], 
                                      chamber=resp.url[-1],

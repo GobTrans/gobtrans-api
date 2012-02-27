@@ -5,12 +5,15 @@
 #
 #     http://doc.scrapy.org/topics/settings.html
 #
+from os import path
 
 BOT_NAME = 'GobiernoTransparenteBot'
 BOT_VERSION = '1.0'
 
 SPIDER_MODULES = ['scraping.spiders']
 NEWSPIDER_MODULE = 'scraping.spiders'
+ITEM_PIPELINES = ['scraping.pipelines.SQLAlchemyPipeline']
+SQLALCHEMY_ENGINE_URL = 'sqlite:////home/aa/hack/gobtrans-doublea/scraping/db.sqlite'
 USER_AGENT = '%s/%s' % (BOT_NAME, BOT_VERSION)
 
 RETRY_HTTP_CODES = [500, 503, 504, 400, 408]
