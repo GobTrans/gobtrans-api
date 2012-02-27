@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from BeautifulSoup import BeautifulSoup
 from scrapemark import scrape
 from scrapy.http import FormRequest
+from scrapy.selector import HtmlXPathSelector
 from collections import defaultdict
 
 from scraping.items import SubstitutesItem
@@ -66,39 +67,40 @@ def parse_list(resp):
     # TODO: The president of the chamber may appear only in a footer. Add him
     #       to the members list.
 
-    refs = scrape(
-        """
-        {* <font>Sustituye al <a>{{ [res].name }}</a>{{ [res].why }}</font>*}
-        """,
-        html=html)['res']
+    sel = HtmlXPathSelector(resp)
+    trs = sel.select('//tr/td[@align="RIGHT" and @valign="TOP" and @width="5%"]/font/strong/../../..')
+    refs = {}
+    for tr in trs:
+        ref = tr.select('.//strong[starts-with(text(), "(")]/text()')[0].extract()[1:-1]
+        sub_info = "".join(tr.select('.//td[2]/font/descendant-or-self::*/text()').extract())
+        refs[ref] = sub_info
 
     items = []
     for info in members:
-        since = None
-        to = None
+        #since = None
+        #to = None
         why = None
-        substitutes = None
+        #substitutes = None
         if 'ref' in info and info['ref'] is not None:
-            ref = int(info['ref'])
-            sub_info = refs[ref-1]
+            why = refs[info['ref']]
 
-            substitutes = sub_info['name']
-            range = get_substitution_range(sub_info['why'])
-            why = get_substitution_reason(sub_info['why'])
+            #substitutes = sub_info['name']
+            #range = get_substitution_range(sub_info['why'])
+            #why = get_substitution_reason(sub_info['why'])
 
-            if len(range) > 0:
-                since = range[0]
-            if len(range) > 1:
-                to = range[1]
+            #if len(range) > 0:
+            #    since = range[0]
+            #if len(range) > 1:
+            #    to = range[1]
 
         items.append(SubstitutesItem(id=extract_id_link(info['idlink']),
-                                     date=resp.meta['date'],
+                                     date=datetime.strptime(resp.meta['date'], DATE_FMT).date(),
                                      name=info['name'],
                                      party=info['party'], 
                                      chamber=resp.url[-1],
-                                     substitutes=substitutes,
-                                     substitutes_from=since,
-                                     substitutes_to=to,
-                                     substitutes_why=why))
+                                     #substitutes=substitutes,
+                                     #substitutes_from=since,
+                                     #substitutes_to=to,
+                                     substitutes_line=why))
 
     return items

@@ -2,9 +2,41 @@
 #
 # See documentation in:
 # http://doc.scrapy.org/topics/items.html
-from datetime import datetime
+from datetime import datetime, date
 
-from scrapy.item import Item, Field
+from scrapy.item import BaseItem, Item, Field
+from sqlalchemy import Column, Integer, String, Date, Enum
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import validates
+
+AlchemyBase = declarative_base()
+
+class PrintableItem(BaseItem):
+    def __str__(self):
+        return self.__repr__()
+
+    def __repr__(self):
+        colnames = (col.name for col in self.__table__.columns)
+        res = []
+        for item in ((col, getattr(self, col)) for col in colnames):
+            res.append("%s=%s" % item)
+        return "<%s %s>" % (self.__class__.__name__, ", ".join(res))
+
+
+
+class SubstitutesItem(PrintableItem, AlchemyBase):
+    __tablename__ = 'substitutes'
+
+    id = Column(Integer, primary_key=True)
+    date = Column(Date, nullable=False)
+    name = Column(String)
+    chamber = Column(Enum('S', 'D'))
+    party = Column(String)
+    substitutes_line = Column(String)
+
+    @validates('date')
+    def validate_date(self, key, value):
+        assert isinstance(value, date)
 
 class ValidatingItem(Item):
     def __init__(self, *args, **kwargs):
@@ -19,18 +51,6 @@ class ValidatingItem(Item):
             if new_value is not None:
                 value = new_value
         super(ValidatingItem, self).__setitem__(key, value)
-
-class SubstitutesItem(ValidatingItem):
-    id = Field(validator=int, required=True)
-    date = Field()
-    name = Field()
-    chamber = Field()
-    party = Field()
-    substitutes = Field()
-    substitutes_from = Field()
-    substitutes_to = Field()
-    substitutes_why = Field()
-
 
 def chamber_validator(chamber):
     if chamber not in ('S', 'D'):
