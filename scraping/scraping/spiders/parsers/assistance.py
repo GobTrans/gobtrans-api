@@ -5,7 +5,7 @@ from datetime import datetime
 from scrapy.http import Request, FormRequest
 from scrapy.selector import HtmlXPathSelector
 
-from scraping.items import AssistanceItem
+from scraping.items import AssistanceItem, AssistanceNote
 
 def parse_nlp_list(paragraph):
     asistees = paragraph.split(',')
@@ -115,7 +115,7 @@ class ParseAssistance(object):
                                 notes = [notes_dict[note_n] for note_n in notes_re.findall(asistee)]
                                 asistee = notes_re.sub('', asistee)
 
-                            yield AssistanceItem(
+                            assistance_item = AssistanceItem(
                                 legislature   = legislature,
                                 chamber       = chamber,
                                 session       = session,
@@ -123,8 +123,12 @@ class ParseAssistance(object):
                                 session_diary = session_diary,
                                 asistee       = asistee,
                                 status        = status,
-                                notes         = notes,
                             )
+
+                            if notes:
+                                assistance_item.notes = [AssistanceNote(note=note) for note in notes]
+
+                            yield assistance_item
 
 
 def parse(spider, response):

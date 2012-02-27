@@ -5,9 +5,9 @@
 from datetime import datetime, date
 
 from scrapy.item import BaseItem
-from sqlalchemy import Column, Integer, String, Date, Enum
+from sqlalchemy import Column, Integer, String, Date, Enum, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import validates
+from sqlalchemy.orm import validates, relationship
 
 AlchemyBase = declarative_base()
 
@@ -40,8 +40,15 @@ class SubstitutesItem(PrintableItem, AlchemyBase):
         return value
 
 
+class AssistanceNote(AlchemyBase):
+    __tablename__ = 'assistance_notes'
+
+    id            = Column(Integer, primary_key=True)
+    note          = Column(String, nullable=False)
+    assistance_id = Column(Integer, ForeignKey('assistances.id'), nullable=False)
+
 class AssistanceItem(PrintableItem, AlchemyBase):
-    __tablename__ = 'assistance'
+    __tablename__ = 'assistances'
 
     id            = Column(Integer, primary_key=True)
     chamber       = Column(Enum('S', 'D'), nullable=False)
@@ -51,7 +58,7 @@ class AssistanceItem(PrintableItem, AlchemyBase):
     session_diary = Column(String)
     asistee       = Column(String, nullable=False)
     status        = Column(Enum('present', 'warned', 'unwarned', 'license'), nullable=False)
-    notes         = Column(String)
+    notes         = relationship('AssistanceNote', backref='assistance')
 
     @validates('session_date')
     def session_date_validator(self, key, value):
