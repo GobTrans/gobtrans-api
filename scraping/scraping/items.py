@@ -4,7 +4,7 @@
 # http://doc.scrapy.org/topics/items.html
 from datetime import datetime, date
 
-from scrapy.item import BaseItem, Item, Field
+from scrapy.item import BaseItem
 from sqlalchemy import Column, Integer, String, Date, Enum
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import validates
@@ -38,20 +38,6 @@ class SubstitutesItem(PrintableItem, AlchemyBase):
     def validate_date(self, key, value):
         assert isinstance(value, date)
         return value
-
-class ValidatingItem(Item):
-    def __init__(self, *args, **kwargs):
-        super(ValidatingItem, self).__init__(*args, **kwargs)
-        for name, field in self.fields.iteritems():
-            if 'required' in field and field['required'] and name not in self._values:
-                raise ValueError("Field %s is required" % name)
-
-    def __setitem__(self, key, value):
-        if key in self.fields and 'validator' in self.fields[key]:
-            new_value = self.fields[key]['validator'](value)
-            if new_value is not None:
-                value = new_value
-        super(ValidatingItem, self).__setitem__(key, value)
 
 
 class AssistanceItem(PrintableItem, AlchemyBase):
