@@ -57,11 +57,12 @@ class ValidatingItem(Item):
 class AssistanceItem(PrintableItem, AlchemyBase):
     __tablename__ = 'assistance'
 
+    id            = Column(Integer, primary_key=True)
     chamber       = Column(Enum('S', 'D'), nullable=False)
     legislature   = Column(Integer, nullable=False)
     session       = Column(Integer, nullable=False)
     session_date  = Column(Date, nullable=False)
-    session_diary = Column(String, nullable=False)
+    session_diary = Column(String)
     asistee       = Column(String, nullable=False)
     status        = Column(Enum('present', 'warned', 'unwarned', 'license'), nullable=False)
     notes         = Column(String)
