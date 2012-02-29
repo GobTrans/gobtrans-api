@@ -1,6 +1,6 @@
 import re, logging
 from urlparse import urljoin, parse_qs
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from scrapy.http import Request, FormRequest
 from scrapy.selector import HtmlXPathSelector
@@ -52,22 +52,29 @@ class ParseAssistance(object):
         return [Request(uri, self.prepare_form) for uri in urls]
 
     def prepare_form(self, response):
-        daterange_pattern = r'>Rango de asistencias disponibles para el Cuerpo en la Legislatura: (\d{2}/\d{2}/\d{4}) - (\d{2}/\d{2}/\d{4})<'
-        daterange = re.findall(daterange_pattern, response.body)[0]
-        post_args = {
-            'fecDesde': datetime.strptime(daterange[0], '%d/%m/%Y').strftime('%d%m%Y'),
-            'fecHasta': datetime.strptime(daterange[1], '%d/%m/%Y').strftime('%d%m%Y'),
-        }
-
-        hidden_input_pattern = r'<INPUT TYPE=HIDDEN[^<]* NAME="([^"]+)" VALUE="([^"]+)">'
-        post_args.update(
-            dict(re.findall(hidden_input_pattern, response.body))
-        )
-
         form_uri_pattern = r'<FORM METHOD=POST ACTION="([^"]+)"'
         form_url = urljoin(response.url, re.search(form_uri_pattern, response.body).group(1))
 
-        return FormRequest(url=form_url, formdata=post_args, callback=self.parse_form_result)
+        hidden_input_pattern = r'<INPUT TYPE=HIDDEN[^<]* NAME="([^"]+)" VALUE="([^"]+)">'
+        base_post_args = dict(re.findall(hidden_input_pattern, response.body))
+
+        daterange_pattern = r'>Rango de asistencias disponibles para el Cuerpo en la Legislatura: (\d{2}/\d{2}/\d{4}) - (\d{2}/\d{2}/\d{4})<'
+        daterange = re.findall(daterange_pattern, response.body)[0]
+        min_date, max_date = [datetime.strptime(datestr, '%d/%m/%Y') for datestr in daterange]
+
+        requests = []
+        for year in range(min_date.year, max_date.year+1):
+            post_args = {
+                'fecDesde': max(min_date, datetime(year, 1, 1)).strftime('%d%m%Y'),
+                'fecHasta': min(max_date, datetime(year+1, 1, 1)-timedelta(days=1)).strftime('%d%m%Y'),
+            }
+            post_args.update(base_post_args)
+
+            requests.append(
+                FormRequest(url=form_url, formdata=post_args, callback=self.parse_form_result)
+            )
+
+        return requests
 
     def parse_form_result(self, response):
         qs = parse_qs(response.request.body)
