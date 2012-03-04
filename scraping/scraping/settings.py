@@ -2,6 +2,7 @@
 # Scrapy settings for scraping project
 # http://doc.scrapy.org/topics/settings.html
 from os import path
+import datetime
 
 PROJECT_ROOT = path.dirname(path.abspath(__file__))
 
@@ -22,6 +23,15 @@ HTTPCACHE_IGNORE_HTTP_CODES = RETRY_HTTP_CODES
 
 CONCURRENT_REQUESTS_PER_DOMAIN = 1
 
+DATE_FMT='%Y-%m-%d'
+
+# The following directives should be redefined in localsettings.py
+
+SCRAPER_DATE_START='1985-02-15'
+
+SCRAPER_DATE_END=datetime.date.today()
+
+# Include localsettings.py
 local_settings_path = path.join(PROJECT_ROOT, 'localsettings.py')
 if path.exists(local_settings_path):
     # use execfile to allow modifications within this context
