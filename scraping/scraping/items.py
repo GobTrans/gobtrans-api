@@ -28,6 +28,8 @@ class SubstitutesItem(PrintableItem, AlchemyBase):
     __tablename__ = 'substitutes'
 
     id = Column(Integer, primary_key=True)
+    legislature_id = Column(Integer)
+    original_id = Column(Integer)
     date = Column(Date, nullable=False)
     name = Column(String, nullable=False)
     chamber = Column(Enum('S', 'D'))

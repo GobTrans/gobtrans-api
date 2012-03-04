@@ -94,9 +94,10 @@ def parse_list(resp):
             #    to = range[1]
 
         date = resp.meta['date']
-        id = extract_id_link(info['idlink']) + date.strftime(DATE_FMT)
-        items.append(SubstitutesItem(id=id,
-                                     date=date,
+        idlink = extract_id_link(info['idlink'])
+        items.append(SubstitutesItem(date=date,
+                                     legislature_id=idlink[:2],
+                                     original_id=idlink[2:],
                                      name=info['name'],
                                      party=info['party'], 
                                      chamber=resp.url[-1],
