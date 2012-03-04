@@ -41,14 +41,14 @@ class ParlamentoSpider(BaseSpider):
                 (parser, urls) for parser, urls in self.start_callbacks.items() if parser not in disabled
             )
 
-        start_date = settings['SCRAPER_DATE_START']
-        end_date = settings['SCRAPER_DATE_END']
+        date_start = settings['SCRAPER_DATE_START']
+        date_end = settings['SCRAPER_DATE_END']
         if 'start' in kwargs:
-            start_date = kwargs['start']
+            date_start = kwargs['start']
         if 'end' in kwargs:
-            end_date = kwargs['end']
-        self.date_start = self._get_date(start_date)
-        self.date_end = self._get_date(end_date)
+            date_end = kwargs['end']
+        self.date_start = self._get_date(date_start)
+        self.date_end = self._get_date(date_end)
 
     def _get_date(self, value):
         if isinstance(value, datetime.date):

@@ -18,18 +18,18 @@ get_substitution_range = lambda why: SUBS_DATES_RE.findall(why)
 get_substitution_reason = lambda why: SUBS_REASON_RE.match(why).group(1)
 extract_id_link = lambda idlink: ID_LINK_RE.search(idlink).group(1)
 
-def dates_gen(start):
+def dates_gen(start, end):
     """ Iterate over days backwards from today to 15/2/1985 """
     d = timedelta(days=1)
     while True:
         yield start
         start -= d
-        if start.year == 1985 and start.month == 2 and start.day == 15:
+        if start <= end:
             return
 
 def parse(spider, resp):
     reqs = []
-    for date in dates_gen(datetime.today()):
+    for date in dates_gen(spider.date_start, spider.date_end):
         date_str = date.strftime(DATE_FMT)
         req = FormRequest(resp.url,
                           formdata={
