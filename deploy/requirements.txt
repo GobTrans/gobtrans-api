@@ -1,6 +1,6 @@
 git+https://github.com/arshaw/scrapemark.git#egg=scrapemark
 Flask
 Flask-SQLAlchemy
-git+https://github.com/nicolaiarocci/mimerender_flask#egg=mimerender-flask
+Flask-MimeRender
 BeautifulSoup
 Scrapy
