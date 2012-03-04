@@ -3,7 +3,7 @@ import os
 
 from flask import Flask, jsonify
 from flask.views import MethodView
-from mimerender_flask import mimerender
+from flaskmimerender import mimerender
 
 from models import Parliamentary, init_db
 from lib.xmlutils import dict2xml
