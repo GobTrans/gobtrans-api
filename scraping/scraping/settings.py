@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 # Scrapy settings for scraping project
 # http://doc.scrapy.org/topics/settings.html
+from os import path
+
+PROJECT_ROOT = path.dirname(path.abspath(__file__))
+
 BOT_NAME = 'GobiernoTransparenteBot'
 BOT_VERSION = '1.0'
 USER_AGENT = '%s/%s' % (BOT_NAME, BOT_VERSION)
@@ -18,8 +22,10 @@ HTTPCACHE_IGNORE_HTTP_CODES = RETRY_HTTP_CODES
 
 CONCURRENT_REQUESTS_PER_DOMAIN = 1
 
-try:
-    from .localsettings import *
-except ImportError:
+local_settings_path = path.join(PROJECT_ROOT, 'localsettings.py')
+if path.exists(local_settings_path):
+    # use execfile to allow modifications within this context
+    execfile(local_settings_path)
+else:
     import sys
     sys.stderr.write("Can't find local settings, using default settings.\n")
