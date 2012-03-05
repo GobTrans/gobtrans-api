@@ -22,8 +22,6 @@ class PrintableItem(BaseItem):
             res.append("%s=%s" % item)
         return "<%s %s>" % (self.__class__.__name__, ", ".join(res))
 
-
-
 class SubstitutesItem(PrintableItem, AlchemyBase):
     __tablename__ = 'substitutes'
 
@@ -34,13 +32,16 @@ class SubstitutesItem(PrintableItem, AlchemyBase):
     name = Column(String, nullable=False)
     chamber = Column(Enum('S', 'D'))
     party = Column(String)
+    substitutes_name = Column(String)
+    substitutes_oid = Column(Integer)
+    substitutes_from = Column(Date)
+    substitutes_to = Column(Date)
     substitutes_line = Column(String)
 
     @validates('date')
     def validate_date(self, key, value):
         assert isinstance(value, date)
         return value
-
 
 class AssistanceNote(AlchemyBase):
     __tablename__ = 'assistance_notes'
