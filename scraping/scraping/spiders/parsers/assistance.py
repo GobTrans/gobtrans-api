@@ -1,6 +1,6 @@
 import re, logging
 from urlparse import urljoin, parse_qs
-from datetime import datetime, timedelta
+from datetime import datetime, date, timedelta
 
 from scrapy.http import Request, FormRequest
 from scrapy.selector import HtmlXPathSelector
@@ -60,13 +60,14 @@ class ParseAssistance(object):
 
         daterange_pattern = r'>Rango de asistencias disponibles para el Cuerpo en la Legislatura: (\d{2}/\d{2}/\d{4}) - (\d{2}/\d{2}/\d{4})<'
         daterange = re.findall(daterange_pattern, response.body)[0]
-        min_date, max_date = [datetime.strptime(datestr, '%d/%m/%Y') for datestr in daterange]
+        min_date, max_date = [datetime.strptime(datestr, '%d/%m/%Y').date() for datestr in daterange]
+        min_date, max_date = max(min_date, self.spider.date_start), min(max_date, self.spider.date_end)
 
         requests = []
         for year in range(min_date.year, max_date.year+1):
             post_args = {
-                'fecDesde': max(min_date, datetime(year, 1, 1)).strftime('%d%m%Y'),
-                'fecHasta': min(max_date, datetime(year+1, 1, 1)-timedelta(days=1)).strftime('%d%m%Y'),
+                'fecDesde': max(min_date, date(year, 1, 1)).strftime('%d%m%Y'),
+                'fecHasta': min(max_date, date(year+1, 1, 1)-timedelta(days=1)).strftime('%d%m%Y'),
             }
             post_args.update(base_post_args)
 

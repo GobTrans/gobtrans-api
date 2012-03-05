@@ -31,6 +31,10 @@ SCRAPER_DATE_START='1985-02-15'
 
 SCRAPER_DATE_END=datetime.date.today()
 
+EXTENSIONS = {
+    'scraping.extensions.git_cache.GitCache': 0,
+}
+
 # Include localsettings.py
 local_settings_path = path.join(PROJECT_ROOT, 'localsettings.py')
 if path.exists(local_settings_path):
