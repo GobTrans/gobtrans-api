@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from api import ParliamentariesAPI
+from app import app
 
 
 parliamentaries_view = ParliamentariesAPI.as_view('parliamentaries_api')
